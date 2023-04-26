@@ -69,7 +69,9 @@ static PyMethodDef Statement_methods[] = {
 // Type object for Statement
 static PyTypeObject StatementType = {
     PyObject_HEAD_INIT(NULL)
+    #if PY_MAJOR_VERSION < 3
     0,                         /*ob_size*/
+    #endif
     "parsebridge.Statement",             /*tp_name*/
     sizeof(Statement), /*tp_basicsize*/
     0,                         /*tp_itemsize*/

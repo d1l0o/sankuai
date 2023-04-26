@@ -44,7 +44,9 @@ static PyMethodDef Node_methods[] = {
 // Type object for Statement
 static PyTypeObject NodeType = {
     PyObject_HEAD_INIT(NULL)
+    #if PY_MAJOR_VERSION < 3
     0,                         /*ob_size*/
+    #endif
     "parsebridge.Node",             /*tp_name*/
     sizeof(Node), /*tp_basicsize*/
     0,                         /*tp_itemsize*/

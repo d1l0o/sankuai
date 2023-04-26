@@ -2,6 +2,19 @@
 #include "Node.h"
 #include "cstring.h"
 #include "modifysql.h"
+#if PY_MAJOR_VERSION >= 3
+#define PyLong_FromLong PyLong_FromLong
+#define PyUnicode_TO_UNICODE PyUnicode_AS_UNICODE
+#define PyUnicode_FromString PyUnicode_FromString
+#define PY_TP_FREE(o) Py_TYPE(o)->tp_free((PyObject*)o);
+#define PyUnicode_FromStringAndSize PyUnicode_FromStringAndSize
+#else
+#define PyLong_FromLong PyInt_FromLong
+#define PyUnicode_TO_UNICODE PyString_AS_STRING
+#define PyUnicode_FromString PyString_FromString
+#define PY_TP_FREE(o) o->ob_type->tp_free((PyObject*)o);
+#define PyUnicode_FromStringAndSize PyString_FromStringAndSize
+#endif
 
 // Initialize this Type
 void Node_init_type(PyObject *m) {
@@ -162,10 +175,10 @@ PyObject *Node_get_text(SqlNode *self, PyObject *args)
 	//tmp = gsp_getNodeText(self->_node);
 	tmp = gsp_getSimpleNodeText(self->_node, self->_parser);
 	if (tmp == NULL) {
-		name = PyString_FromString("");
+		name = PyUnicode_FromString("");
 	}
 	else {
-		name = PyString_FromString(tmp);
+		name = PyUnicode_FromString(tmp);
 		gsp_free(tmp);
 	}
 	
@@ -208,7 +221,7 @@ PyObject *Node_list_iterator(PyObject *o) {
 
 PyObject *Node_getattro(SqlNode *self, PyObject *name)
 {
-	if (strcmp(PyString_AS_STRING(name), "node_text") == 0) {
+	if (strcmp(PyUnicode_TO_UNICODE(name), "node_text") == 0) {
 		return Node_get_text(self, NULL);
 	}
 
@@ -228,17 +241,17 @@ PyObject *Node_FromNode(gsp_node *node, Statement *stmt) {
 
 		if (self->ob_type == &NodeType) {
 			// it's a SqlNode object!
-			type = PyInt_FromLong(node->nodeType);
+			type = PyLong_FromLong(node->nodeType);
 			PyDict_SetItemString(((SqlNode*)self)->dict, "node_type", type);
 
 			//Py_XDECREF(type);
 			if (node->nodeType == t_gsp_list) {
-				/*name = PyString_FromString("LIST");
+				/*name = PyUnicode_FromString("LIST");
 				PyDict_SetItemString(((SqlNode*)self)->dict, "node_text", name);
 				Py_XDECREF(name);*/
 			} else {
 				/*tmp = gsp_getNodeText(node);
-				name = PyString_FromString(tmp);
+				name = PyUnicode_FromString(tmp);
 				gsp_free(tmp);
 				PyDict_SetItemString(((SqlNode*)self)->dict, "node_text", name);
 				Py_XDECREF(name);*/
@@ -247,13 +260,13 @@ PyObject *Node_FromNode(gsp_node *node, Statement *stmt) {
 			// it's something else! maybe a list. we dont judge.
 		}
 	} else {
-		type = PyInt_FromLong(node->nodeType);
+		type = PyLong_FromLong(node->nodeType);
 		//printf("NO PARSER FOR NODE TYPE: %d\n", node->nodeType);
 		self = Node_new(&NodeType, NULL, NULL);
 		PyDict_SetItemString(((SqlNode*)self)->dict, "node_type", type);
 
 		/*tmp = gsp_getNodeText(node);
-		name = PyString_FromString(tmp);
+		name = PyUnicode_FromString(tmp);
 		gsp_free(tmp);
 		PyDict_SetItemString(((SqlNode*)self)->dict, "node_text", name);
 		Py_XDECREF(name);*/
@@ -269,7 +282,7 @@ void Node_dealloc(SqlNode *self)
 {
 	//printf("Node_dealloc %p (%d)\n", self, self->ob_refcnt);
 	Py_XDECREF(self->dict);
-    self->ob_type->tp_free((PyObject*)self);
+    PY_TP_FREE(self)
 }
 
 PyObject *Node_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -287,8 +300,8 @@ PyObject *Node_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 
-#define ADD_TOKEN(d, path, name) if (path->name) { PyObject *o = PyString_FromStringAndSize(path->name->pStr, path->name->nStrLen); PyDict_SetItemString(d, #name, o); Py_XDECREF(o); } else { PyDict_SetItemString(d, #name, Py_None); } 
-#define ADD_INT(d, path, name) if (true) { PyObject *o = PyInt_FromLong(path->name); PyDict_SetItemString(d, #name, o); Py_XDECREF(o); }
+#define ADD_TOKEN(d, path, name) if (path->name) { PyObject *o = PyUnicode_FromStringAndSize(path->name->pStr, path->name->nStrLen); PyDict_SetItemString(d, #name, o); Py_XDECREF(o); } else { PyDict_SetItemString(d, #name, Py_None); }
+#define ADD_INT(d, path, name) if (true) { PyObject *o = PyLong_FromLong(path->name); PyDict_SetItemString(d, #name, o); Py_XDECREF(o); }
 #define ADD_NODE(d, path, name) if (path->name) { PyObject *o = Node_FromNode((gsp_node*)path->name, stmt); PyDict_SetItemString(d, #name, o); Py_XDECREF(o); } else { PyDict_SetItemString(d, #name, Py_None); } 
 #define ADD_LIST(d, path, name) if (path->name) { PyObject *o = Node_parsepath->name; PyDict_SetItemString(d, #name, o); Py_XDECREF(o); } else { PyDict_SetItemString(d, #name, Py_None); } 
 

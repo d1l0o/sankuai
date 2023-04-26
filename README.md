@@ -1,24 +1,24 @@
 python-sqlparser
 ================
 
-Note: This package is UNMAINTAINED
---------
-
 A Python Module for the "General SQL Parser" library (sqlparser.com)
+
+Refer
+-----
+https://github.com/TwoLaid/python-sqlparser
 
 Supported Systems
 -----------------
 This library currently supports: Windows 32bit/64bit and Linux 32bit/64bit. 
 There are currently no binaries for Mac OSX available.
 
-Also, please note that this module does not support Python 3.*
+This module support Python 2.* and Python 3.*
 
 Installation
 ------------
 Simply clone or download this git and execute
 
-	python setup.py build
-	python setup.py install
+	pip install python-sqlparser
 
 The setup script will automatically download the right library (from sqlparser.com) for you.
 
@@ -31,7 +31,8 @@ The following example will parse a simple query:
 import sqlparser
 
 query = "SELECT a, b FROM table_1 WHERE c > 20"
-parser = sqlparser.Parser()
+# Init a oracle sql parser
+parser = sqlparser.Parser(vendor=2)
 
 # Check for syntax errors
 if parser.check_syntax(query) == 0:
@@ -41,7 +42,7 @@ if parser.check_syntax(query) == 0:
 	# Get root node
 	root = stmt.get_root()
 
-	print root.__dict__
+	print(root.__dict__)
 ```
 
 And print the node information the SELECT node:

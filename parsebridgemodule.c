@@ -13,6 +13,33 @@
 #include "Node.h"
 #include "ENodeType.h"
 
+#if PY_MAJOR_VERSION >= 3
+static PyModuleDef SqlParserModule = {
+    PyModuleDef_HEAD_INIT,
+    .m_name = "sqlparser",
+    .m_doc = "Bridge between python and sqlparser",
+    .m_size = -1
+};
+
+PyMODINIT_FUNC PyInit_sqlparser(void)
+{
+    PyObject *m;
+
+    if (PyType_Ready(&ParserType) < 0)
+        return NULL;
+
+    // initialize module
+    m = PyModule_Create(&SqlParserModule);
+    if (m == NULL) return NULL;
+
+    // Initialize our custom types
+	Parser_init_type(m);
+	Node_init_type(m);
+	Statement_init_type(m);
+	Enum_init_type(m);
+	return m;
+}
+#else
 // Module functions
 static PyMethodDef BridgeMethods[] =
 {
@@ -35,3 +62,4 @@ initsqlparser(void)
 	Statement_init_type(m);
 	Enum_init_type(m);
 }
+#endif

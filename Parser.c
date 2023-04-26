@@ -1,6 +1,11 @@
 
 #include "Parser.h"
 #include "Statement.h"
+#if PY_MAJOR_VERSION >= 3
+#define PY_TP_FREE(o) Py_TYPE(o)->tp_free((PyObject*)o);
+#else
+#define PY_TP_FREE(o) o->ob_type->tp_free((PyObject*)o);
+#endif
 
 // Initialize this Type
 void Parser_init_type(PyObject *m) {
@@ -17,7 +22,7 @@ void Parser_dealloc(Parser *self)
 	if (self->_parser != NULL) {
 		gsp_parser_free(self->_parser);
 	}
-	self->ob_type->tp_free((PyObject*)self);
+	PY_TP_FREE(self)
 }
 
 // Allocate new Parser object
@@ -90,7 +95,11 @@ PyObject* Parser_check_syntax(PyObject* self, PyObject* args)
 
 	//printf("check_syntax (%p): %s\n", parser->_parser, query);
 	rc = gsp_check_syntax(parser->_parser, query);
-	r = PyInt_FromLong(rc);
+	if (rc != 0) {
+	    r = Py_BuildValue("(i,s)", rc, gsp_errmsg(parser->_parser));
+	} else {
+	    r = Py_BuildValue("(i,s)", rc, "");
+	}
 	//Py_XDECREF(r);
 	return r;
 }

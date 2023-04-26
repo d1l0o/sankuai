@@ -1,6 +1,13 @@
 #include "Statement.h"
 #include "Node.h"
 #include "modifysql.h"
+#if PY_MAJOR_VERSION >= 3
+#define PY_TP_FREE(o) Py_TYPE(o)->tp_free((PyObject*)o);
+#define PyUnicode_FromString PyUnicode_FromString
+#else
+#define PY_TP_FREE(o) o->ob_type->tp_free((PyObject*)o);
+#define PyUnicode_FromString PyString_FromString
+#endif
 
 // Initialize Statement Type
 void Statement_init_type(PyObject *m) {
@@ -228,7 +235,7 @@ PyObject* Statement_add_whereclause(PyObject* self, PyObject* args)
 	//printf("new: %s\n", gsp_getNodeText( (gsp_node*) ((Statement*)self)->_statement->stmt));
 
 	newQuery = gsp_getNodeText( (gsp_node*) ((Statement*)self)->_statement->stmt );
-	newString = PyString_FromString(newQuery);
+	newString = PyUnicode_FromString(newQuery);
 	free(newQuery);
 
 	return newString;
@@ -249,7 +256,7 @@ PyObject* Statement_add_orderby(PyObject* self, PyObject* args)
 	gsp_addOrderBy( ((Statement*)self)->_statement->sqlparser, (gsp_selectStatement*) ((SqlNode*)node)->_node, text);
 
 	newQuery = gsp_getNodeText( (gsp_node*) ((Statement*)self)->_statement->stmt );
-	newString = PyString_FromString(newQuery);
+	newString = PyUnicode_FromString(newQuery);
 	free(newQuery);
 
 	return newString;
@@ -270,7 +277,7 @@ PyObject* Statement_add_groupby(PyObject* self, PyObject* args)
 	gsp_addGroupBy( ((Statement*)self)->_statement->sqlparser, (gsp_selectStatement*) ((SqlNode*)node)->_node, text);
 
 	newQuery = gsp_getNodeText( (gsp_node*) ((Statement*)self)->_statement->stmt );
-	newString = PyString_FromString(newQuery);
+	newString = PyUnicode_FromString(newQuery);
 	free(newQuery);
 
 	return newString;
@@ -291,7 +298,7 @@ PyObject* Statement_add_havingclause(PyObject* self, PyObject* args)
 	gsp_addHavingClause( ((Statement*)self)->_statement->sqlparser, (gsp_selectStatement*) ((SqlNode*)node)->_node, text);
 
 	newQuery = gsp_getNodeText( (gsp_node*) ((Statement*)self)->_statement->stmt );
-	newString = PyString_FromString(newQuery);
+	newString = PyUnicode_FromString(newQuery);
 	free(newQuery);
 
 	return newString;
@@ -312,7 +319,7 @@ PyObject* Statement_add_joinitem(PyObject* self, PyObject* args)
 	gsp_addJoinItem( ((Statement*)self)->_statement->sqlparser, (gsp_selectStatement*) ((SqlNode*)node)->_node, text);
 
 	newQuery = gsp_getNodeText( (gsp_node*) ((Statement*)self)->_statement->stmt );
-	newString = PyString_FromString(newQuery);
+	newString = PyUnicode_FromString(newQuery);
 	free(newQuery);
 
 	return newString;
@@ -332,7 +339,7 @@ PyObject* Statement_add_resultcolumn(PyObject* self, PyObject* args)
 
 	gsp_addResultColumn( ((Statement*)self)->_statement->sqlparser, (gsp_base_statement*) ((SqlNode*)node)->_node, text);
 	newQuery = gsp_getNodeText( (gsp_node*) ((Statement*)self)->_statement->stmt );
-	newString = PyString_FromString(newQuery);
+	newString = PyUnicode_FromString(newQuery);
 	free(newQuery);
 	return newString;
 }
@@ -340,7 +347,7 @@ PyObject* Statement_add_resultcolumn(PyObject* self, PyObject* args)
 void Statement_dealloc(Statement *self)
 {   
 	//printf("Statement_dealloc\n"); 
-    self->ob_type->tp_free((PyObject*)self);
+    PY_TP_FREE(self)
 }
 
 PyObject *Statement_new(PyTypeObject *type, PyObject *args, PyObject *kwds)

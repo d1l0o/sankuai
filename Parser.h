@@ -42,7 +42,9 @@ static PyMethodDef Parser_methods[] = {
 // Type object for Parser
 static PyTypeObject ParserType = {
     PyObject_HEAD_INIT(NULL)
+    #if PY_MAJOR_VERSION < 3
     0,                         /*ob_size*/
+    #endif
     "parsebridge.Parser",             /*tp_name*/
     sizeof(Parser), /*tp_basicsize*/
     0,                         /*tp_itemsize*/

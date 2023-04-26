@@ -65,7 +65,9 @@ static PyMethodDef NodeTypeE_methods[] = {
 
 static PyTypeObject EnumType = {
     PyObject_HEAD_INIT(NULL)
+    #if PY_MAJOR_VERSION < 3
     0,                         /*ob_size*/
+    #endif
     "parsebridge.Enum",             /*tp_name*/
     sizeof(Enum), /*tp_basicsize*/
     0,                         /*tp_itemsize*/
